@@ -10,7 +10,6 @@ export const CONFIG = Object.freeze({
   MIN_SCALE_FLOOR: 0.08,
   CELL_GRID_MIN_SCALE: 7,
   LABEL_MIN_SCALE: 30,
-  LIVE_UPDATES_URL: "ws://127.0.0.1:8765/ws",
   BACKGROUND_COLOR: "#f3f5f8",
   CLEAR_COLOR: "#d8dde5",
   PALETTE: [
