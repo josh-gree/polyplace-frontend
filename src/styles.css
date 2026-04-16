@@ -74,6 +74,37 @@ body {
   image-rendering: pixelated;
 }
 
+#walletBar {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+}
+
+#connectWallet {
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: var(--ink);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(21, 21, 21, 0.18);
+  transition: background 0.15s;
+}
+
+#connectWallet:hover {
+  background: #333;
+}
+
+#connectWallet.connected {
+  background: #1a7f4b;
+  cursor: default;
+}
+
 @media (max-width: 600px) {
   .mini-map {
     right: 10px;

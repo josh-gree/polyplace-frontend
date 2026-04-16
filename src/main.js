@@ -1,5 +1,6 @@
 import "./styles.css";
 
+import { connectWallet, getConnectedAddress, onAccountsChanged } from "./wallet.js";
 import { createEmptyBoard } from "./board.js";
 import { createInputController } from "./input.js";
 import { connectLiveUpdates } from "./live-updates.js";
@@ -55,3 +56,32 @@ function resize() {
 
 window.addEventListener("resize", resize);
 resize();
+
+// Wallet
+const btn = document.getElementById("connectWallet");
+
+function setConnected(address) {
+  btn.textContent = address.slice(0, 6) + "…" + address.slice(-4);
+  btn.classList.add("connected");
+  btn.disabled = true;
+}
+
+btn.addEventListener("click", async () => {
+  const address = await connectWallet();
+  if (address) setConnected(address);
+});
+
+onAccountsChanged((accounts) => {
+  if (accounts[0]) {
+    setConnected(accounts[0]);
+  } else {
+    btn.textContent = "Connect Wallet";
+    btn.classList.remove("connected");
+    btn.disabled = false;
+  }
+});
+
+// Restore if already connected from a prior session
+getConnectedAddress().then((address) => {
+  if (address) setConnected(address);
+});
