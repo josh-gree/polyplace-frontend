@@ -3,7 +3,15 @@ import { CONFIG } from "./config.js";
 
 const MAGIC = [0x50, 0x4c, 0x47, 0x01]; // PLG\x01
 
-function getUrls() {
+async function getUrls() {
+  const res = await fetch("/config.json");
+  const { backendUrl } = await res.json();
+  if (backendUrl) {
+    return {
+      gridUrl: `${backendUrl}/grid`,
+      wsUrl: `${backendUrl.replace(/^http/, "ws")}/ws`,
+    };
+  }
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   return {
     gridUrl: "/grid",
@@ -55,7 +63,7 @@ function parseCellUpdate(text) {
 }
 
 export function connectLiveUpdates({ board, renderer }) {
-  const { gridUrl, wsUrl } = getUrls();
+  let gridUrl, wsUrl;
   let socket = null;
   let reconnectTimer = null;
   let manuallyClosed = false;
@@ -105,7 +113,8 @@ export function connectLiveUpdates({ board, renderer }) {
     }, 1000);
   }
 
-  function connect() {
+  async function connect() {
+    if (!gridUrl) ({ gridUrl, wsUrl } = await getUrls());
     socket = new WebSocket(wsUrl);
     socket.addEventListener("message", handleMessage);
     socket.addEventListener("close", scheduleReconnect);
