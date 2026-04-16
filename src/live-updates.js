@@ -4,7 +4,7 @@ import { CONFIG } from "./config.js";
 const MAGIC = [0x50, 0x4c, 0x47, 0x01]; // PLG\x01
 
 function getUrls() {
-  const base = import.meta.env.VITE_BACKEND_URL;
+  const base = window.BACKEND_URL;
   if (base) {
     return {
       gridUrl: `${base}/grid`,
