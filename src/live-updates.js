@@ -4,13 +4,6 @@ import { CONFIG } from "./config.js";
 const MAGIC = [0x50, 0x4c, 0x47, 0x01]; // PLG\x01
 
 function getUrls() {
-  const base = window.BACKEND_URL;
-  if (base) {
-    return {
-      gridUrl: `${base}/grid`,
-      wsUrl: `${base.replace(/^http/, "ws")}/ws`,
-    };
-  }
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   return {
     gridUrl: "/grid",
