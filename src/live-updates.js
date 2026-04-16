@@ -3,21 +3,22 @@ import { CONFIG } from "./config.js";
 
 const MAGIC = [0x50, 0x4c, 0x47, 0x01]; // PLG\x01
 
-function getWsUrl() {
+function getUrls() {
+  const base = import.meta.env.VITE_BACKEND_URL;
+  if (base) {
+    return {
+      gridUrl: `${base}/grid`,
+      wsUrl: `${base.replace(/^http/, "ws")}/ws`,
+    };
+  }
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  return `${proto}//${location.host}/ws`;
-}
-
-async function decompress(buf) {
-  const ds = new DecompressionStream("gzip");
-  const writer = ds.writable.getWriter();
-  writer.write(buf);
-  writer.close();
-  return new Response(ds.readable).arrayBuffer();
+  return {
+    gridUrl: "/grid",
+    wsUrl: `${proto}//${location.host}/ws`,
+  };
 }
 
 async function parseSnapshot(buf) {
-  buf = await decompress(buf);
   const data = new Uint8Array(buf);
   const view = new DataView(buf);
 
@@ -28,7 +29,7 @@ async function parseSnapshot(buf) {
   const width      = view.getUint16(4, true);
   const height     = view.getUint16(6, true);
   const nRenderers = view.getUint32(8, true);
-  let pos = 20 + nRenderers * 20; // skip header + address table
+  let pos = 20 + nRenderers * 20;
 
   const totalCells  = width * height;
   const bitmapSize  = Math.ceil(totalCells / 8);
@@ -60,41 +61,63 @@ function parseCellUpdate(text) {
   return [[x, y, hex]];
 }
 
-export function connectLiveUpdates({ board, renderer, url = getWsUrl() }) {
+export function connectLiveUpdates({ board, renderer }) {
+  const { gridUrl, wsUrl } = getUrls();
   let socket = null;
   let reconnectTimer = null;
   let manuallyClosed = false;
+  let buffer = [];
+  let snapshotApplied = false;
+
+  function applyUpdate(data) {
+    try {
+      applyCellUpdates(board, parseCellUpdate(data));
+      renderer.scheduleRender();
+    } catch (err) {
+      console.error("live-updates: failed to apply update", err);
+    }
+  }
+
+  function handleMessage(event) {
+    if (!snapshotApplied) {
+      buffer.push(event.data);
+    } else {
+      applyUpdate(event.data);
+    }
+  }
+
+  async function loadSnapshot() {
+    try {
+      const res = await fetch(gridUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const cells = await parseSnapshot(await res.arrayBuffer());
+      applyCellUpdates(board, cells);
+      renderer.scheduleRender();
+      const queued = buffer;
+      buffer = [];
+      snapshotApplied = true;
+      for (const data of queued) applyUpdate(data);
+    } catch (err) {
+      console.error("live-updates: failed to load snapshot", err);
+    }
+  }
 
   function scheduleReconnect() {
     if (manuallyClosed || reconnectTimer) return;
+    snapshotApplied = false;
+    buffer = [];
     reconnectTimer = window.setTimeout(() => {
       reconnectTimer = null;
       connect();
     }, 1000);
   }
 
-  async function handleMessage(event) {
-    try {
-      if (event.data instanceof ArrayBuffer) {
-        const cells = await parseSnapshot(event.data);
-        applyCellUpdates(board, cells);
-      } else {
-        applyCellUpdates(board, parseCellUpdate(event.data));
-      }
-      renderer.scheduleRender();
-    } catch (err) {
-      console.error("live-updates: failed to apply message", err);
-    }
-  }
-
   function connect() {
-    socket = new WebSocket(url);
-    socket.binaryType = "arraybuffer";
+    socket = new WebSocket(wsUrl);
     socket.addEventListener("message", handleMessage);
     socket.addEventListener("close", scheduleReconnect);
-    socket.addEventListener("error", () => {
-      socket.close();
-    });
+    socket.addEventListener("error", () => socket.close());
+    loadSnapshot();
   }
 
   connect();
