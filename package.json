@@ -7,10 +7,13 @@
     "dev": "vite --host 127.0.0.1",
     "ws": "uv run --with websockets python -u scripts/random_cell_ws.py",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
-    "vite": "^7.1.0"
+    "@cloudflare/vite-plugin": "^1.32.3",
+    "vite": "^7.1.0",
+    "wrangler": "^4.83.0"
   },
   "dependencies": {
     "d3-selection": "^3.0.0",
