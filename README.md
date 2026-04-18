@@ -4,6 +4,29 @@ Vite prototype for navigating a 1000 x 1000 cell grid.
 
 ## Run
 
+### Worker-local frontend
+
+Use this when testing against the watcher on `http://127.0.0.1:8000`.
+This serves the built frontend through the Cloudflare Worker on `http://127.0.0.1:8787`,
+so browser requests to `/grid` and `/ws` go cross-origin to the watcher.
+
+```sh
+npm install
+npm run worker:dev
+```
+
+Then open `http://127.0.0.1:8787`.
+
+The local Wrangler environment returns this from `/config.json`:
+
+```json
+{ "backendUrl": "http://127.0.0.1:8000" }
+```
+
+Wrangler runs locally by default; do not use the deprecated `--local` flag.
+
+### Canvas prototype only
+
 ```sh
 npm install
 npm run dev

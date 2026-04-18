@@ -6,6 +6,6 @@ export default {
       return Response.json({ backendUrl: env.BACKEND_URL ?? null });
     }
 
-    return env.ASSETS.fetch(request);
+    return new Response("Not found", { status: 404 });
   },
 };

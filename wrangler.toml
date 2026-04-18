@@ -4,3 +4,11 @@ compatibility_date = "2024-01-01"
 
 [assets]
 directory = "./dist"
+
+[dev]
+ip = "127.0.0.1"
+port = 8787
+local_protocol = "http"
+
+[env.local.vars]
+BACKEND_URL = "http://127.0.0.1:8000"
