@@ -1,7 +1,8 @@
 import "./styles.css";
 
-import { connectWallet, getConnectedAddress, onAccountsChanged } from "./wallet.js";
-import { createEmptyBoard } from "./board.js";
+import { connectWallet, getConnectedAddress, onAccountChanged } from "./wallet.js";
+import { createCellStore } from "./cell-store.js";
+import { CONFIG } from "./config.js";
 import { createInputController } from "./input.js";
 import { connectLiveUpdates } from "./live-updates.js";
 import { createRenderer } from "./renderer.js";
@@ -17,14 +18,15 @@ const state = {
   selectedCell: null,
 };
 
-const board = createEmptyBoard();
+const cellStore = createCellStore();
 const viewport = createViewport();
 const renderer = createRenderer({
   canvas,
   miniMap,
-  board,
+  board: cellStore.canvas,
   viewport,
   state,
+  beforeDraw: cellStore.commit,
 });
 
 const input = createInputController({
@@ -36,9 +38,14 @@ const input = createInputController({
 });
 
 connectLiveUpdates({
-  board,
+  cellStore,
   renderer,
 });
+
+setInterval(() => {
+  cellStore.tick();
+  renderer.scheduleRender();
+}, CONFIG.FADE_TICK_MS);
 
 let initialized = false;
 
@@ -71,9 +78,9 @@ btn.addEventListener("click", async () => {
   if (address) setConnected(address);
 });
 
-onAccountsChanged((accounts) => {
-  if (accounts[0]) {
-    setConnected(accounts[0]);
+onAccountChanged((address) => {
+  if (address) {
+    setConnected(address);
   } else {
     btn.textContent = "Connect Wallet";
     btn.classList.remove("connected");

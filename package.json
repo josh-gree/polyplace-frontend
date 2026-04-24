@@ -5,17 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "ws": "uv run --with websockets python -u scripts/random_cell_ws.py",
+    "ws": "uv run --with aiohttp python -u scripts/random_cell_ws.py",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "worker:dev": "npm run build && wrangler dev --env local"
+    "worker:dev": "npm run build && wrangler dev --env local",
+    "worker:random": "npm run build && wrangler dev --env random"
   },
   "devDependencies": {
     "vite": "^7.1.0",
     "wrangler": "^4.83.0"
   },
   "dependencies": {
+    "@wagmi/connectors": "^8.0.4",
+    "@wagmi/core": "^3.4.5",
     "d3-selection": "^3.0.0",
-    "d3-zoom": "^3.0.0"
+    "d3-zoom": "^3.0.0",
+    "viem": "^2.48.4"
   }
 }

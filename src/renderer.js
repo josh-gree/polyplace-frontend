@@ -1,7 +1,7 @@
 import { CONFIG } from "./config.js";
 import { clamp, roundRect } from "./math.js";
 
-export function createRenderer({ canvas, miniMap, board, viewport, state }) {
+export function createRenderer({ canvas, miniMap, board, viewport, state, beforeDraw }) {
   const ctx = canvas.getContext("2d", { alpha: false });
   const miniCtx = miniMap.getContext("2d", { alpha: false });
   let renderQueued = false;
@@ -157,6 +157,7 @@ export function createRenderer({ canvas, miniMap, board, viewport, state }) {
     renderQueued = false;
     if (!viewport.canvasSize.width || !viewport.canvasSize.height) return;
 
+    beforeDraw?.();
     clearCanvas();
     drawBoard();
     drawMiniMap();

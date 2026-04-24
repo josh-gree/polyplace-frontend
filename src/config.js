@@ -12,6 +12,8 @@ export const CONFIG = Object.freeze({
   LABEL_MIN_SCALE: 30,
   BACKGROUND_COLOR: "#f3f5f8",
   CLEAR_COLOR: "#d8dde5",
+  FADE_WINDOW_SECONDS: 60,
+  FADE_TICK_MS: 2000,
   PALETTE: [
     "#e94f37",
     "#21a67a",

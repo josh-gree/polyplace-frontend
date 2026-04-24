@@ -1,18 +1,41 @@
-export async function connectWallet() {
-  if (!window.ethereum) {
-    alert("MetaMask is not installed.");
-    return null;
-  }
-  const [address] = await window.ethereum.request({ method: "eth_requestAccounts" });
-  return address;
+import {
+  connect,
+  disconnect,
+  getConnections,
+  injected,
+  reconnect,
+  watchConnections,
+} from "@wagmi/core";
+import { config } from "./wagmi.js";
+
+function currentAddress() {
+  return getConnections(config)[0]?.accounts[0] ?? null;
 }
 
-export function onAccountsChanged(callback) {
-  window.ethereum?.on("accountsChanged", callback);
+export async function connectWallet() {
+  try {
+    const { accounts } = await connect(config, { connector: injected() });
+    return accounts[0] ?? null;
+  } catch (err) {
+    if (!window.ethereum) alert("MetaMask is not installed.");
+    else console.error(err);
+    return null;
+  }
+}
+
+export async function disconnectWallet() {
+  await disconnect(config);
+}
+
+export function onAccountChanged(callback) {
+  return watchConnections(config, {
+    onChange() {
+      callback(currentAddress());
+    },
+  });
 }
 
 export async function getConnectedAddress() {
-  if (!window.ethereum) return null;
-  const accounts = await window.ethereum.request({ method: "eth_accounts" });
-  return accounts[0] ?? null;
+  await reconnect(config);
+  return currentAddress();
 }

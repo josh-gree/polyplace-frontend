@@ -1,6 +1,3 @@
-import { applyCellUpdates } from "./board.js";
-import { CONFIG } from "./config.js";
-
 const MAGIC = [0x50, 0x4c, 0x47, 0x01]; // PLG\x01
 
 async function getUrls() {
@@ -29,40 +26,65 @@ async function parseSnapshot(buf) {
 
   const width      = view.getUint16(4, true);
   const height     = view.getUint16(6, true);
-  const nRenderers = view.getUint32(8, true);
-  let pos = 20 + nRenderers * 20;
+  const nRenters   = view.getUint32(8, true);
+  const nRented    = view.getUint32(12, true);
+  const metaOffset = view.getUint32(16, true);
 
+  // Skip Section 1 (address table) — we don't use renter addresses yet.
+  const bitmapStart = 20 + nRenters * 20;
   const totalCells  = width * height;
   const bitmapSize  = Math.ceil(totalCells / 8);
-  const bitmapStart = pos;
-  pos += bitmapSize;
-  const rgbStart = pos;
+  const rgbStart    = bitmapStart + bitmapSize;
 
-  const cells = [];
+  // Section 2: presence bitmap + packed RGB. Accumulate into preallocated
+  // typed arrays sized to the full grid so the worst case (1M colored cells)
+  // allocates exactly once.
+  const colorIds = new Uint32Array(totalCells);
+  const colorR   = new Uint8Array(totalCells);
+  const colorG   = new Uint8Array(totalCells);
+  const colorB   = new Uint8Array(totalCells);
+  let colorCount = 0;
   let rgbPos = rgbStart;
-
   for (let cellId = 0; cellId < totalCells; cellId++) {
     if (data[bitmapStart + (cellId >> 3)] & (1 << (cellId & 7))) {
-      const r = data[rgbPos].toString(16).padStart(2, "0");
-      const g = data[rgbPos + 1].toString(16).padStart(2, "0");
-      const b = data[rgbPos + 2].toString(16).padStart(2, "0");
-      cells.push([cellId % width, Math.floor(cellId / width), `#${r}${g}${b}`]);
+      colorIds[colorCount] = cellId;
+      colorR[colorCount] = data[rgbPos];
+      colorG[colorCount] = data[rgbPos + 1];
+      colorB[colorCount] = data[rgbPos + 2];
+      colorCount++;
       rgbPos += 3;
     }
   }
 
-  return cells;
+  // Section 3: rental records — 11 bytes each.
+  // cellId (u24 LE = u16 low + u8 high) + expiresTs (u32 LE) + renterIdx (u32 LE).
+  const rentalIds     = new Uint32Array(nRented);
+  const rentalExpires = new Uint32Array(nRented);
+  let pos = metaOffset;
+  for (let i = 0; i < nRented; i++) {
+    rentalIds[i]     = view.getUint16(pos, true) | (data[pos + 2] << 16);
+    rentalExpires[i] = view.getUint32(pos + 3, true);
+    pos += 11;
+  }
+
+  return {
+    colorIds,
+    colorR,
+    colorG,
+    colorB,
+    colorCount,
+    rentalIds,
+    rentalExpires,
+    rentalCount: nRented,
+  };
 }
 
 function parseCellUpdate(text) {
-  const { i, r, g, b } = JSON.parse(text);
-  const x = i % CONFIG.GRID_SIZE;
-  const y = Math.floor(i / CONFIG.GRID_SIZE);
-  const hex = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-  return [[x, y, hex]];
+  const { i, r, g, b, expires_at } = JSON.parse(text);
+  return { cellId: i, r, g, b, expiresAt: expires_at ?? 0 };
 }
 
-export function connectLiveUpdates({ board, renderer }) {
+export function connectLiveUpdates({ cellStore, renderer }) {
   let gridUrl, wsUrl;
   let socket = null;
   let reconnectTimer = null;
@@ -72,7 +94,8 @@ export function connectLiveUpdates({ board, renderer }) {
 
   function applyUpdate(data) {
     try {
-      applyCellUpdates(board, parseCellUpdate(data));
+      const { cellId, r, g, b, expiresAt } = parseCellUpdate(data);
+      cellStore.updateCell(cellId, r, g, b, expiresAt);
       renderer.scheduleRender();
     } catch (err) {
       console.error("live-updates: failed to apply update", err);
@@ -91,8 +114,8 @@ export function connectLiveUpdates({ board, renderer }) {
     try {
       const res = await fetch(gridUrl);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const cells = await parseSnapshot(await res.arrayBuffer());
-      applyCellUpdates(board, cells);
+      const snapshot = await parseSnapshot(await res.arrayBuffer());
+      cellStore.applySnapshot(snapshot);
       renderer.scheduleRender();
       const queued = buffer;
       buffer = [];

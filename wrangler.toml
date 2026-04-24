@@ -12,3 +12,6 @@ local_protocol = "http"
 
 [env.local.vars]
 BACKEND_URL = "http://127.0.0.1:8000"
+
+[env.random.vars]
+BACKEND_URL = "http://127.0.0.1:8765"
