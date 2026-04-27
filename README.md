@@ -64,6 +64,21 @@ The WebSocket server streams 1000 single-cell color update messages per second a
 - `src/main.js` connects the pieces and handles initial resize.
 - `scripts/random_cell_ws.py` is the tiny Python WebSocket producer for random updates.
 
+## Build & deploy
+
+Builds and deploys are handled by the **Cloudflare Workers Builds** GitHub App (`cloudflare-workers-and-pages`), configured from the Cloudflare dashboard rather than from this repo. On every push it runs `npm ci` + `npm run build` and:
+
+- For PR branches, deploys a preview Worker and posts the URL as a bot comment on the PR.
+- For `main`, deploys to production.
+- Posts a `Workers Builds: polyplace-frontend` status check on each commit.
+
+There is no GitHub Actions workflow — the Cloudflare check is the build signal. To reproduce a build locally:
+
+```sh
+npm ci        # or `npm install` for dev
+npm run build
+```
+
 ## Libraries
 
 - `d3-zoom` handles pan, wheel zoom, touch zoom, pinch gestures, and transform state.
