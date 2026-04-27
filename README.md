@@ -79,6 +79,34 @@ npm ci        # or `npm install` for dev
 npm run build
 ```
 
+### Backend URL configuration
+
+The Worker exposes `/config.json`, which the SPA fetches at startup to discover the watcher:
+
+```js
+// src/worker.js
+return Response.json({ backendUrl: env.BACKEND_URL ?? null });
+```
+
+`BACKEND_URL` is a plain (non-secret) Worker var. The values are:
+
+| Env | `BACKEND_URL` | Where it's set |
+|---|---|---|
+| Production (`main`) | `https://polyplace-watcher.fly.dev` | Cloudflare dashboard, Worker `polyplace-frontend` → Settings → Variables |
+| `env.local` | `http://127.0.0.1:8000` | `wrangler.toml` |
+| `env.random` | `http://127.0.0.1:8765` | `wrangler.toml` |
+
+Production is set in the dashboard rather than `wrangler.toml` because Cloudflare Workers Builds owns the deploy and reads vars from the dashboard. If the dashboard var is unset, `/config.json` returns `{ "backendUrl": null }` and the SPA has nothing to talk to.
+
+### Forking the stack
+
+To run your own Polyplace deployment:
+
+1. Deploy your own `polyplace-watcher` (e.g. to Fly.io) and note its public URL.
+2. Point this frontend at it by either:
+   - Connecting your fork to Cloudflare Workers Builds and setting `BACKEND_URL` to your watcher URL in the Worker's dashboard variables, or
+   - Adding an `[env.<name>.vars]` block to `wrangler.toml` with your `BACKEND_URL` and running `npx wrangler deploy --env <name>`.
+
 ## Libraries
 
 - `d3-zoom` handles pan, wheel zoom, touch zoom, pinch gestures, and transform state.
