@@ -64,6 +64,15 @@ The WebSocket server streams 1000 single-cell color update messages per second a
 - `src/main.js` connects the pieces and handles initial resize.
 - `scripts/random_cell_ws.py` is the tiny Python WebSocket producer for random updates.
 
+## CI
+
+GitHub Actions runs `npm ci` and `npm run build` on every push to `main` and every pull request (`.github/workflows/ci.yml`). Local equivalents:
+
+```sh
+npm ci        # or `npm install` for dev
+npm run build
+```
+
 ## Libraries
 
 - `d3-zoom` handles pan, wheel zoom, touch zoom, pinch gestures, and transform state.
