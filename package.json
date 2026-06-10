@@ -16,8 +16,6 @@
     "wrangler": "^4.83.0"
   },
   "dependencies": {
-    "@wagmi/connectors": "^8.0.4",
-    "@wagmi/core": "^3.4.5",
     "d3-selection": "^3.0.0",
     "d3-zoom": "^3.0.0",
     "viem": "^2.48.4"
