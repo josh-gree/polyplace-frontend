@@ -2,6 +2,7 @@ import "./styles.css";
 
 import { createCellStore } from "./cell-store.js";
 import { CONFIG } from "./config.js";
+import { createHelp } from "./help.js";
 import { createInputController } from "./input.js";
 import { connectLiveUpdates } from "./live-updates.js";
 import { createRenderer } from "./renderer.js";
@@ -9,6 +10,8 @@ import { createViewport } from "./viewport.js";
 
 const canvas = document.getElementById("gridCanvas");
 const miniMap = document.getElementById("miniMap");
+
+createHelp();
 
 // Shared UI state that is not part of viewport math. Keeping it in one object
 // lets input and rendering communicate without creating a framework.

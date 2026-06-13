@@ -82,3 +82,132 @@ body {
     height: 124px;
   }
 }
+
+.help-button {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(21, 21, 21, 0.2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(21, 21, 21, 0.12);
+  z-index: 10;
+}
+
+.help-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.help-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.help-dialog {
+  width: min(460px, calc(100vw - 28px));
+  padding: 24px 26px 22px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--grid);
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(21, 21, 21, 0.25);
+}
+
+.help-dialog::backdrop {
+  background: rgba(21, 21, 21, 0.35);
+}
+
+.help-dialog h2 {
+  margin: 0 30px 12px 0;
+  font-size: 20px;
+}
+
+.help-dialog h3 {
+  margin: 20px 0 6px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--line-strong);
+}
+
+.help-dialog p {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.help-dialog pre {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.help-dialog code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+.help-dialog p code {
+  padding: 1px 5px;
+  background: var(--bg);
+  border-radius: 4px;
+}
+
+.help-note {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--line-strong);
+}
+
+.help-links {
+  margin-top: 18px;
+}
+
+.help-links a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.help-links a:hover {
+  text-decoration: underline;
+}
+
+.help-links span {
+  margin: 0 8px;
+  color: var(--line-strong);
+}
+
+.help-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--line-strong);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.help-close:hover {
+  color: var(--ink);
+  background: var(--bg);
+}
